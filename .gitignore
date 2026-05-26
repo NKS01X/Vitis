@@ -1,0 +1,12 @@
+/target
+tests/target/
+tests/**/target/
+**/*.rs.bk
+.DS_Store
+*.swp
+.vitis_upper
+.vitis_work
+.vitis_pivot_root
+vitis-cache/
+target_user/
+/target_user/

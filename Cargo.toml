@@ -1,0 +1,39 @@
+[workspace]
+members = [
+    "crates/core",
+    "crates/parser",
+    "crates/engine",
+    "crates/runtime",
+    "crates/storage",
+    "crates/cache",
+    "crates/export",
+    "crates/registry",
+    "crates/cli",
+    "crates/_tests",
+]
+resolver = "2"
+
+[workspace.dependencies]
+clap = { version = "4.4", features = ["derive"] }
+anyhow = "1.0"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time", "fs", "process", "signal"] }
+fuser = "0.14"
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+hex = "0.4"
+termtree = "0.4"
+indicatif = "0.17"
+tracing = "0.1"
+thiserror = "1"
+nix = { version = "0.27", features = ["mount", "sched", "fs", "hostname"] }
+libc = "0.2"
+tar = "0.4"
+flate2 = "1"
+chrono = { version = "0.4", features = ["serde"] }
+tempfile = "3"
+
+[profile.release]
+opt-level = 3
+lto = true
