@@ -1,0 +1,9 @@
+[package]
+name = "vitis-parser"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+vitis-core = { path = "../core" }
+
+[dev-dependencies]
