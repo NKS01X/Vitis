@@ -1,0 +1,14 @@
+[package]
+name = "vitis-cache"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+vitis-core = { path = "../core" }
+sha2 = { workspace = true }
+hex = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
