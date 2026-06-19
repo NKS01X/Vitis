@@ -1,0 +1,11 @@
+[package]
+name = "vitis-runtime"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+nix = { workspace = true }
+libc = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
