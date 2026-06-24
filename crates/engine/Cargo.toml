@@ -1,0 +1,16 @@
+[package]
+name = "vitis-engine"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+vitis-core = { path = "../core" }
+vitis-runtime = { path = "../runtime" }
+vitis-storage = { path = "../storage" }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+fuser = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
