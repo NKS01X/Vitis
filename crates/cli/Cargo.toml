@@ -1,0 +1,26 @@
+[package]
+name = "vitis"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "vitis"
+path = "src/main.rs"
+
+[dependencies]
+vitis-core = { path = "../core" }
+vitis-parser = { path = "../parser" }
+vitis-engine = { path = "../engine", optional = true }
+clap = { workspace = true }
+anyhow = { workspace = true }
+tokio = { workspace = true }
+termtree = { workspace = true }
+indicatif = { workspace = true }
+tracing = { workspace = true }
+
+[features]
+# Live (FUSE-backed) execution. Off by default so the converter/renderer and
+# the library build without libfuse3 installed.
+engine = ["dep:vitis-engine"]
+
+[dev-dependencies]
