@@ -1,0 +1,19 @@
+[package]
+name = "vitis-tests"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+vitis-core = { path = "../core" }
+vitis-parser = { path = "../parser" }
+
+[dependencies.vitis-engine]
+path = "../engine"
+optional = true
+
+[dev-dependencies]
+tokio = { workspace = true }
+anyhow = { workspace = true }
+
+[features]
+engine = ["dep:vitis-engine"]
