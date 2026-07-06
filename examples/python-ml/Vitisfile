@@ -1,0 +1,22 @@
+FROM python:3.11-slim
+
+RUN apt-get update
+
+# Data-prep branch (independent)
+  RUN pip install --no-cache-dir pandas numpy
+  COPY ./data ./data
+  RUN python prepare_data.py
+
+# Training branch (independent, parallel with data prep)
+  RUN pip install --no-cache-dir scikit-learn torch
+  COPY ./train ./train
+  RUN python train/train_model.py --epochs 20
+
+# Evaluation branch (independent, parallel)
+  RUN pip install --no-cache-dir matplotlib seaborn
+  COPY ./evaluate ./evaluate
+  RUN python evaluate/metrics.py
+
+# Merge point: assemble the final ML artifact
+RUN python package.py \
+ && tar -czf ml_pipeline.tar.gz model/ metrics/ prepared_data/

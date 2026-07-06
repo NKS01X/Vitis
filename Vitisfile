@@ -1,0 +1,12 @@
+FROM ubuntu:24.04
+WORKDIR /workspace
+
+    RUN apt-get update && apt-get install -y gcc     # branch 1
+    COPY ./backend ./backend
+    RUN make build-backend
+
+    RUN apt-get update && apt-get install -y nodejs   # branch 2
+    COPY ./frontend ./frontend
+    RUN npm run build
+
+RUN tar -czf release.tar.gz ./backend/dist ./frontend/dist   # merge

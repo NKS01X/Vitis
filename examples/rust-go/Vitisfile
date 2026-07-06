@@ -1,0 +1,18 @@
+FROM ubuntu:22.04
+
+RUN apt-get update
+
+# Rust branch (independent)
+  RUN apt-get install -y cargo
+  COPY ./rust-service ./rust-service
+  RUN cd rust-service && cargo build --release
+
+# Go branch (independent, parallel with Rust)
+  RUN apt-get install -y golang-go
+  COPY ./go-service ./go-service
+  RUN cd go-service && go build -o /out/go-app .
+
+# Merge point: collect both binaries
+RUN cp rust-service/target/release/rust-app /out/ \
+ && cp go-service/go-app /out/ \
+ && echo "multi-language build complete"

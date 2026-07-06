@@ -1,0 +1,16 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Frontend branch (independent)
+  RUN apk add --no-cache git
+  COPY ./frontend ./frontend
+  RUN cd frontend && npm ci && npm run build
+
+# Backend branch (independent, runs in parallel with frontend)
+  RUN apk add --no-cache curl
+  COPY ./backend ./backend
+  RUN cd backend && npm ci && npm run build
+
+# Merge point: package both builds into a single release
+RUN tar -czf release.tar.gz ./backend/dist ./frontend/dist
