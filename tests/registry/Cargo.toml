@@ -1,0 +1,10 @@
+[package]
+name = "vitis-test-registry"
+version.workspace = true
+edition.workspace = true
+publish = false
+
+[dependencies]
+vitis-registry.workspace = true
+tokio = { workspace = true }
+serde_json.workspace = true

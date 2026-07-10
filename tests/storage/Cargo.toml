@@ -1,0 +1,15 @@
+[package]
+name = "vitis-test-storage"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+# Standalone: not part of the default tests workspace (pulls in FUSE).
+[workspace]
+
+[dependencies]
+vitis-storage = { path = "../../crates/storage" }
+
+[features]
+# Enable to run the storage FUSE tests (requires libfuse3-dev on the host).
+fuse = []

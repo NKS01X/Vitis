@@ -1,0 +1,10 @@
+[package]
+name = "vitis-test-export"
+version.workspace = true
+edition.workspace = true
+publish = false
+
+[dependencies]
+vitis-export.workspace = true
+tempfile.workspace = true
+serde_json.workspace = true

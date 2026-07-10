@@ -1,0 +1,10 @@
+[package]
+name = "vitis-test-cli"
+version.workspace = true
+edition.workspace = true
+publish = false
+
+[dependencies]
+vitis-cli.workspace = true
+vitis-parser.workspace = true
+vitis-core.workspace = true

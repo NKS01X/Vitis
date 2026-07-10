@@ -1,0 +1,18 @@
+[package]
+name = "vitis-test-engine"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+# Standalone: not part of the default tests workspace (pulls in FUSE).
+[workspace]
+
+[dependencies]
+vitis-engine = { path = "../../crates/engine" }
+vitis-core = { path = "../../crates/core" }
+vitis-parser = { path = "../../crates/parser" }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time", "fs"] }
+
+[features]
+# Enable to run the engine scheduler tests (requires libfuse3-dev: engine links storage).
+fuse = []

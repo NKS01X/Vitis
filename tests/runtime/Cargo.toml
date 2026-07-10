@@ -1,0 +1,8 @@
+[package]
+name = "vitis-test-runtime"
+version.workspace = true
+edition.workspace = true
+publish = false
+
+[dependencies]
+vitis-runtime.workspace = true

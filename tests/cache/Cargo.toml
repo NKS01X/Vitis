@@ -1,0 +1,9 @@
+[package]
+name = "vitis-test-cache"
+version.workspace = true
+edition.workspace = true
+publish = false
+
+[dependencies]
+vitis-cache.workspace = true
+tempfile.workspace = true
