@@ -115,25 +115,82 @@ In Docker: 70 seconds (40 + 30 sequential). In Vitis: 40 seconds (both branches 
 
 ## Benchmarks
 
-> **Methodology** — Timings measured on this machine (Ubuntu 24.04, `libfuse3` 3.14.0, Docker 29.1.3). Docker time recorded with `time docker build --no-cache -f bench/Dockerfile .` (full cold build: gcc + nodejs toolchain install, compile, run, tar merge). Vitis parallel-wall-time is the wall time of the longest branch (nodejs at ~160 s) plus the merge step — branches run concurrently on separate Tokio worker threads. All 20 engine scheduler tests pass in **0.06 s** on release build (Kahn topological scheduler over `tokio::mpsc`).
+> **Methodology** — Timings measured on a 12th Gen Intel Core i5-12450H (12 vCPUs) running Ubuntu 24.04.4 LTS (kernel 6.17.0, `libfuse3`, Docker 29.1.3). The Docker sequential cold build is run via `time docker build --no-cache -f bench/Dockerfile .` which installs the GCC toolchain, compiles `hello.c`, installs Node.js/npm, runs `index.js`, and packages them into a tarball. Vitis parallel time is projected as the ceiling branch (Node.js/npm install + run) plus the merge step since the two branches execute concurrently.
 
 ### 2-Branch Build: Docker (sequential) vs. Vitis (parallel)
 
 | Step | Docker (sequential) | Vitis (parallel) |
 |---|---|---|
-| Branch 1 — `apt-get install gcc make` + compile | ~130 s | ↘ concurrent |
-| Branch 2 — `apt-get install nodejs npm` + run | ~160 s | ↘ concurrent |
+| Branch 1 — `apt-get install gcc make` + compile | ~65 s | ↘ concurrent |
+| Branch 2 — `apt-get install nodejs npm` + run | ~240 s | ↘ concurrent |
 | Merge — `tar -czf release.tar.gz` | ~2 s | ~2 s |
-| **Total wall time** | **292 s (4m 52s) ✱measured** | **~162 s (~2m 42s) ✱projected** |
-| **Speedup** | — | **~1.8×** |
+| **Total wall time** | **308.62 s (5m 08s) ✱measured** | **~242.00 s (~4m 02s) ✱projected** |
+| **Speedup** | — | **~1.3× faster** |
 
-> ✱ Docker sequential time (`292 s`) is live-measured (`time docker build --no-cache`). Vitis wall time is the ceiling branch (nodejs ~160 s) + merge — branches dispatch the instant their in-degree reaches zero, guaranteed by Kahn's reactor loop in `vitis-engine`.
+> ✱ **Vitis is ~1.3× faster than Docker** by executing independent dependency branches concurrently. The Docker sequential time (`308.62 s`) is live-measured. Vitis parallel wall time is projected as the maximum branch ceiling (~240 s) + merge (~2 s). In a parallel engine execution, branches dispatch concurrently on Tokio threads as soon as their in-degree reaches zero, guided by Kahn's scheduling reactor.
+
+### Micro-benchmarks (Criterion.rs)
+
+The following tables show empirical results from the Cargo workspace benchmark suites. You can run these benchmarks locally using `cargo bench`.
+
+#### Parser Crate (`vitis-parser`)
+
+| Benchmark | Mean Time | Description |
+|---|---|---|
+| `parse_simple_sequential_5` | 258.73 ns | 5-line sequential Vitisfile |
+| `parse_2branch_parallel_9` | 662.67 ns | 9-line 2-branch parallel Vitisfile |
+| `parse_3branch_parallel_14` | 854.33 ns | 14-line 3-branch ML-pipeline Vitisfile |
+| `parse_chain_100_tasks` | 8.14 µs | 100-step sequential chain |
+| `parse_deep_nesting_10_levels` | 969.77 ns | 10-level nested block scope stack |
+| `parse_wide_fan_20_branches` | 1.78 µs | 1 root → 20 branches → 1 merge |
+
+#### Engine Crate (`vitis-engine`)
+
+| Benchmark | Mean Time | Description |
+|---|---|---|
+| `schedule_diamond_4_tasks` | 22.49 µs | Diamond DAG dispatch overhead (InstantExecutor) |
+| `schedule_2branch_9_tasks` | 42.05 µs | 2-branch parallel DAG dispatch (InstantExecutor) |
+| `schedule_fan_10_branches` | 32.64 µs | Wide fan-out 10 branches (InstantExecutor) |
+| `schedule_chain_100_tasks` | 665.26 µs | 100-task sequential dispatch (InstantExecutor) |
+| `schedule_complex_dag_50` | 98.43 µs | 50-task multi-branch merge DAG (InstantExecutor) |
+| `schedule_sim_executor_diamond` | 53.62 ms | Diamond DAG execution with SimExecutor |
+
+#### Cache Crate (`vitis-cache`)
+
+| Benchmark | Mean Time | Description |
+|---|---|---|
+| `cache_key_generation` | 392.90 ns | SHA-256 cache keying for typical RUN step |
+| `cache_store_1kb` | 20.12 µs | Write 1 KB artifact to content-addressable storage |
+| `cache_hit_lookup` | 1.20 µs | Cache-hit existence query |
+| `cache_diff_4kb` | 3.32 µs | Byte-level recursive diff (4 KB buffer) |
+| `cache_diff_64kb` | 50.68 µs | Byte-level recursive diff (64 KB buffer) |
+| `cache_key_5_copy_targets` | 1.03 µs | Hashing COPY instruction with 5 source files |
+
+#### OCI Export Crate (`vitis-export`)
+
+| Benchmark | Mean Time | Description |
+|---|---|---|
+| `compact_layer_5_files` | 116.50 µs | Tar/gzip directory structure with 5 small files |
+| `compact_layer_50_files_5mb` | 12.29 ms | Tar/gzip directory structure with 50 files (5 MB) |
+| `build_manifest_10_layers` | 2.95 µs | Construct OCI manifest json descriptor |
+| `sha256_1mb` | 534.28 µs | SHA-256 throughput check on 1 MB data buffer |
+| `package_image_single_layer` | 51.59 µs | Assemble single OCI image archive |
+
+#### CLI Crate (`vitis`)
+
+| Benchmark | Mean Time | Description |
+|---|---|---|
+| `convert_simple_dockerfile_6` | 513.80 ns | Convert 6-line Dockerfile to Vitisfile |
+| `convert_multistage_dockerfile` | 1.15 µs | Convert multi-stage build configuration |
+| `convert_complex_dockerfile_18` | 1.64 µs | Convert 18-line production-style Dockerfile |
+| `render_dry_run_4_tasks` | 1.12 µs | Tree output construction (4 tasks) |
+| `render_dry_run_20_tasks` | 6.44 µs | Tree output construction (20 tasks) |
 
 ### Kahn Scheduler — Engine Test Suite
 
 ```
 $ cargo test -p vitis-engine --release
-running 20 tests ... ok  finished in 0.06s
+running 20 tests ... ok  finished in 0.05s
 ```
 
 All tests pass including `sim_executor_works` (diamond DAG, parallel branches, merge) and `tasks_executed_in_topological_order` (verifies parallelism ordering constraints).

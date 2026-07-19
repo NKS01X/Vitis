@@ -7,3 +7,8 @@ edition = "2021"
 vitis-core = { path = "../core" }
 
 [dev-dependencies]
+criterion = { workspace = true }
+
+[[bench]]
+name = "parser"
+harness = false
